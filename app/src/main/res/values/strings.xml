@@ -3,4 +3,7 @@
     <string name="task_1">Написать код бэкенда</string>
     <string name="task_2">Сделать тренировку в зале</string>
     <string name="task_3">Поработать над машиной в гараже</string>
+    <string name="add_task">Добавить задачу</string>
+    <string name="taskname">Название задачи</string>
+    <string name="date">Дата</string>
 </resources>
