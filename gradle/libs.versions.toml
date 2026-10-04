@@ -1,12 +1,16 @@
 [versions]
-agp = "9.4.1"
-coreKtx = "1.19.0"
+# Убедись, что версия agp совпадает с той, что была у тебя изначально (например, 8.2.0 или 9.4.1)
+agp = "8.2.0"
+kotlin = "1.9.20"
+room = "2.6.1"
+
+coreKtx = "1.13.0"
 junit = "4.13.2"
-junitVersion = "1.3.0"
-espressoCore = "3.7.0"
+junitVersion = "1.1.5"
+espressoCore = "3.5.1"
 appcompat = "1.6.1"
 material = "1.10.0"
-activityKtx = "1.13.0"
+activityKtx = "1.8.0"
 constraintlayout = "2.1.4"
 
 [libraries]
@@ -19,6 +23,13 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 
-[plugins]
-android-application = { id = "com.android.application", version.ref = "agp" }
+# Библиотеки базы данных Room
+room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
+[plugins]
+# Плагины для приложения, Kotlin и генератора кода KAPT
+android-application = { id = "com.android.application", version.ref = "agp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-kapt = { id = "org.jetbrains.kotlin.kapt", version.ref = "kotlin" }
