@@ -6,14 +6,13 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 
 // Аннотация связывает базу данных с нашей таблицей (Entity)
-@Database(entities = [Task::class], version = 1, exportSchema = false)
+@Database(entities = [Task::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
 
     // Абстрактный метод, через который Room предоставит нам доступ к методам DAO
     abstract fun taskDao(): TaskDao
 
     companion object {
-        // Volatile гарантирует, что значение INSTANCE всегда актуально для всех потоков
         @Volatile
         private var INSTANCE: AppDatabase? = null
 
@@ -25,7 +24,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "task_database" // Имя файла базы данных на устройстве
-                ).build()
+                ).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 instance
             }

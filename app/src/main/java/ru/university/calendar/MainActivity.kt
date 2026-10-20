@@ -2,71 +2,73 @@ package ru.university.calendar
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
-import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class MainActivity : AppCompatActivity() {
+
+    private val taskViewModel: TaskViewModel by viewModels()
+
+    // Переменная для хранения текущего списка задач на экране (нужна для свайпов)
+    private var currentTasks: List<Task> = emptyList()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         val recyclerView = findViewById<RecyclerView>(R.id.recyclerViewTasks)
-        recyclerView.adapter = TasksAdapter(emptyList()) {}
-        // Настраиваем переход на экран добавления задачи
+        recyclerView.layoutManager = LinearLayoutManager(this)
+
+        // Кнопка добавления новой задачи
         val fab = findViewById<FloatingActionButton>(R.id.fabAddTask)
         fab.setOnClickListener {
             startActivity(Intent(this, AddTaskActivity::class.java))
         }
 
-        testDatabase()
-    }
+        // Подписка на данные из ViewModel
+        taskViewModel.allTasks.observe(this) { tasks ->
+            currentTasks = tasks // Сохраняем свежий список в переменную
 
-    private fun testDatabase() {
-        val db = AppDatabase.getDatabase(applicationContext)
-        val dao = db.taskDao()
+            val adapter = TasksAdapter(tasks) { taskId ->
+                val selectedTask = tasks.find { it.id == taskId }
+                if (selectedTask != null) {
+                    val intent = Intent(this, DetailActivity::class.java).apply {
+                        putExtra("EXTRA_ID", selectedTask.id) // Передаем ID!
+                        putExtra("EXTRA_TITLE", selectedTask.title)
+                        putExtra("EXTRA_DATE", selectedTask.date)
+                        putExtra("EXTRA_TIME", selectedTask.time) // Передаем время!
+                        putExtra("EXTRA_DESCRIPTION", selectedTask.description)
+                    }
+                    startActivity(intent)
+                }
+            }
+            recyclerView.adapter = adapter
+        }
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            // Создаем тестовые задачи
-            val task1 = Task(title = "Купить продукты", description = "Молоко, хлеб, яйца", date = "2026-10-04")
-            val task2 = Task(title = "Сделать ДЗ по Android", description = "Закончить 3 этап", date = "2026-10-05")
+        //УДАЛЕНИЕ СВАЙПОМ
+        val itemTouchHelperCallback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
 
-            // Сохраняем их
-            dao.insertTask(task1)
-            dao.insertTask(task2)
-
-            // Читаем все задачи из базы
-            val allTasks = dao.getAllTasks()
-
-            for (task in allTasks) {
-                Log.d("DB_TEST", "Найдена задача: ID=${task.id}, Название='${task.title}', Дата=${task.date}")
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return false
             }
 
-            withContext(Dispatchers.Main) {
-                val recyclerView = findViewById<RecyclerView>(R.id.recyclerViewTasks)
-                recyclerView.layoutManager = LinearLayoutManager(this@MainActivity)
-
-                val adapter = TasksAdapter(allTasks) { taskId ->
-                    // Находим задачу, на которую кликнули
-                    val selectedTask = allTasks.find { it.id == taskId }
-                    if (selectedTask != null) {
-                        // Передаем данные на экран деталей
-                        val intent = Intent(this@MainActivity, DetailActivity::class.java).apply {
-                            putExtra("EXTRA_TITLE", selectedTask.title)
-                            putExtra("EXTRA_DATE", selectedTask.date)
-                            putExtra("EXTRA_DESCRIPTION", selectedTask.description)
-                        }
-                        startActivity(intent)
-                    }
-                }
-                recyclerView.adapter = adapter
+            // Метод срабатывает, когда карточка смахнута до конца
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                val taskToDelete = currentTasks[position]
+                taskViewModel.deleteTask(taskToDelete)
             }
         }
+
+        val itemTouchHelper = ItemTouchHelper(itemTouchHelperCallback)
+        itemTouchHelper.attachToRecyclerView(recyclerView)
     }
 }

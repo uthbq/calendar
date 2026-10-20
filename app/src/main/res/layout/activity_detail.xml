@@ -19,14 +19,31 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
+        android:textColor="@android:color/darker_gray" />
+
+    <!-- Новое поле для времени -->
+    <TextView
+        android:id="@+id/tvDetailTime"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
         android:textColor="@android:color/darker_gray"
         android:layout_marginBottom="24dp" />
 
     <TextView
         android:id="@+id/tvDetailDescription"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:textSize="18sp"
         android:textColor="@android:color/black" />
+
+    <!-- Кнопка редактирования -->
+    <Button
+        android:id="@+id/buttonEditTask"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:text="Редактировать"
+        android:textSize="18sp" />
 
 </LinearLayout>
