@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Фон для ВЫБРАННОГО дня в календарной сетке (подключается в CalendarAdapter).
+    Вместо картинки PNG рисуем фигуру кодом через <shape> — она весит пару байт
+    и остаётся идеально чёткой на экранах с любым разрешением.
+    android:shape="oval" на квадратном TextView (32dp x 32dp) даёт ровный круг.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <!-- Сплошная синяя (индиго) заливка кружка, поверх которой в адаптере пишется белое число -->
+    <solid android:color="#3F51B5" />
+</shape>

@@ -1,47 +1,105 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Макет ОДНОЙ карточки задачи в списке (подключается в TasksAdapter и выводится в RecyclerView на главном экране).
+
+    Основа карточки — CardView (готовый компонент Material Design с тенью и скруглёнными углами):
+    - layout_width="match_parent" — карточка тянется на всю ширину списка;
+    - layout_height="wrap_content" — высота подстраивается под содержимое (например, если название длинное в 2 строки);
+    - layout_margin="8dp" — внешний отступ вокруг карточки, чтобы между задачами был «воздух» и видна тень;
+    - app:cardBackgroundColor="@color/cal_card_bg" — фон карточки (белый в светлой теме, тёмно-серый в тёмной);
+    - app:cardCornerRadius="8dp" — скругление углов;
+    - app:cardElevation="4dp" — размер мягкой тени под карточкой.
+-->
 <androidx.cardview.widget.CardView
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
+    app:cardBackgroundColor="@color/cal_card_bg"
     app:cardCornerRadius="8dp"
     app:cardElevation="4dp">
 
+    <!--
+        Горизонтальный ряд внутри карточки: [цветная полоска] [чекбокс] [текстовый блок справа].
+        - orientation="horizontal" — выстраивает эти три части слева направо;
+        - gravity="center_vertical" — центрирует полоску и галочку по вертикали относительно текста;
+        - padding="14dp" — внутренний отступ от краёв карточки, чтобы текст не прилипал к рамке.
+    -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:padding="16dp">
+        android:padding="14dp">
 
+        <!--
+            Вертикальная цветная полоска приоритета слева (ширина 5dp, высота 44dp).
+            По умолчанию оранжевая (#FB8C00 — средний приоритет), а в TasksAdapter её цвет
+            меняется под реальный приоритет задачи: красный (высокий), оранжевый (средний), зелёный (низкий).
+            layout_marginEnd="10dp" — отступ справа (End вместо Right для корректной поддержки любых языков).
+        -->
+        <View
+            android:id="@+id/viewPriorityIndicator"
+            android:layout_width="5dp"
+            android:layout_height="44dp"
+            android:layout_marginEnd="10dp"
+            android:background="#FB8C00" />
+
+        <!--
+            Галочка выполнения задачи (isDone).
+            wrap_content — занимает ровно столько места, сколько нужно самому квадратику CheckBox.
+            Нажатие на неё ловится в TasksAdapter и сразу обновляет задачу в Room через TaskViewModel.
+        -->
         <CheckBox
             android:id="@+id/checkBoxDone"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp" />
+            android:layout_marginEnd="12dp" />
 
+        <!--
+            Правый вертикальный блок с тремя строчками текста: название, дата/время и категория/приоритет.
+            Зачем тут `layout_width="0dp"` + `layout_weight="1"`?
+            Это заставляет текстовый блок занять ВСЮ оставшуюся ширину карточки справа от чекбокса —
+            так длинный заголовок задачи аккуратно перенесётся на вторую строчку, а не обрежется за экраном.
+        -->
         <LinearLayout
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:orientation="vertical">
 
+            <!-- Название задачи (жирный шрифт 18sp; при выполнении TasksAdapter добавляет зачёркивание).
+                 Текст @string/taskname берётся из strings.xml как заглушка для предпросмотра -->
             <TextView
                 android:id="@+id/textViewTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="18sp"
                 android:textStyle="bold"
-                android:textColor="#000000"
+                android:textColor="@color/cal_text_primary"
                 android:text="@string/taskname" />
 
+            <!-- Строка с датой и временем напоминания (приглушённый цвет cal_text_secondary, шрифт 13sp) -->
             <TextView
                 android:id="@+id/textViewDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:textSize="14sp"
+                android:textSize="13sp"
+                android:textColor="@color/cal_text_secondary"
                 android:text="@string/date" />
+
+            <!-- Строка с категорией и приоритетом (например, «Учёба • Высокий приоритет»),
+                 выделена акцентным цветом cal_accent и жирным шрифтом 12sp -->
+            <TextView
+                android:id="@+id/textViewMeta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/cal_accent" />
 
         </LinearLayout>
     </LinearLayout>

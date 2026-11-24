@@ -1,94 +1,191 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Вёрстка экрана создания и редактирования задачи (подключается в AddTaskActivity).
+
+    Корневой контейнер — ScrollView (прокручиваемая область).
+    Зачем он тут нужен: на маленьком экране или когда вылезает экранная клавиатура,
+    все поля формы и кнопка «Сохранить» могут не влезть по высоте — а ScrollView даст
+    спокойно прокрутить экран пальцем вниз.
+
+    Пояснение по главным атрибутам:
+    - xmlns:android — подключает стандартные атрибуты Android (android:...);
+    - xmlns:app — подключает дополнительные атрибуты из библиотек Material/AndroidX (app:...);
+    - layout_width / layout_height = "match_parent" — растянуть на всю ширину и высоту экрана;
+    - background="@color/cal_bg" — цвет фона из colors.xml (сам меняется при переключении на тёмную тему);
+    - fillViewport="true" — если контента мало, он всё равно растягивается на всю высоту экрана, а не обрывается посередине.
+-->
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5"
+    android:background="@color/cal_bg"
     android:fillViewport="true">
 
+    <!--
+        ScrollView может содержать внутри строго ОДИН прямой дочерний элемент,
+        поэтому складываем все поля формы внутрь вертикального LinearLayout.
+        - layout_height="wrap_content" — высота контейнера подстраивается ровно под высоту всех полей внутри;
+        - orientation="vertical" — элементы выстраиваются друг под другом сверху вниз;
+        - padding="24dp" — ВНУТРЕННИЙ отступ от краёв экрана со всех сторон (dp — независимые от плотности
+          пиксели, чтобы отступ выглядел одинаково на экранах с разным разрешением).
+    -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="24dp">
 
+        <!--
+            Заголовок экрана вверху формы.
+            - textSize="28sp" — для шрифтов всегда используем sp (а не dp), чтобы текст увеличивался,
+              если человек включил крупный шрифт в настройках телефона;
+            - textStyle="bold" — жирный шрифт;
+            - layout_marginBottom="20dp" — ВНЕШНИЙ отступ снизу, чтобы отодвинуть следующее поле.
+        -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Новая задача"
-            android:textColor="#000000"
+            android:text="Задача"
+            android:textColor="@color/cal_text_primary"
             android:textSize="28sp"
             android:textStyle="bold"
-            android:layout_marginBottom="24dp" />
+            android:layout_marginBottom="20dp" />
 
-        <!-- Поле для ввода названия задачи -->
+        <!--
+            Поле названия задачи в обёртке Material Design (TextInputLayout).
+            Зачем нужна эта обёртка вокруг обычного поля ввода:
+            1) app:hintEnabled="true" — красиво поднимает подсказку «Название задачи» вверх, когда начинаешь печатать;
+            2) в AddTaskActivity я обращаюсь к ней по id (textInputLayoutTitle), чтобы показать красную ошибку валидации.
+        -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputLayoutTitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="14dp"
             app:hintEnabled="true">
 
+            <!--
+                Само текстовое поле названия.
+                - id="@+id/editTextTitle" — знак `+` означает «создать новый ID в каталоге R.id»;
+                - hint — текст-подсказка, пока поле пустое;
+                - inputType="textCapSentences" — говорит клавиатуре автоматически начинать предложение с заглавной буквы.
+            -->
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextTitle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Название задачи"
+                android:textColor="@color/cal_text_primary"
                 android:inputType="textCapSentences" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Поле для выбора даты -->
+        <!-- Обёртка для поля выбора даты (сюда выводим красную ошибку, если дата некорректна) -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputLayoutDate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="14dp">
 
+            <!--
+                Поле даты: настроено специально так, чтобы пользователь НЕ печатал дату вручную с ошибками,
+                а выбирал её из системного календаря DatePickerDialog:
+                - focusable="false" — запрещает фокусироваться курсору внутри поля (клавиатура не вылезет);
+                - clickable="true" — разрешает ловить обычное нажатие в AddTaskActivity;
+                - inputType="none" — дополнительно отключает ввод текста с клавиатуры.
+            -->
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextDate"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Дата выполнения"
+                android:textColor="@color/cal_text_primary"
                 android:focusable="false"
                 android:clickable="true"
                 android:inputType="none" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Поле для выбора времени -->
+        <!-- Обёртка для поля выбора времени напоминания -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputLayoutTime"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp">
+            android:layout_marginBottom="14dp">
 
+            <!-- Точно так же отключаем клавиатуру (focusable="false", inputType="none"),
+                 чтобы по нажатию сразу открывались системные часики TimePickerDialog -->
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextTime"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Время выполнения"
+                android:textColor="@color/cal_text_primary"
                 android:focusable="false"
                 android:clickable="true"
                 android:inputType="none" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Поле для описания задачи -->
+        <!-- Небольшая подпись над выпадающим списком категорий (приглушённый цвет cal_text_secondary) -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Категория"
+            android:textColor="@color/cal_text_secondary"
+            android:textSize="13sp"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Выпадающий список категорий (заполняется через ArrayAdapter в AddTaskActivity).
+             Высота 48dp — стандарт минимальной удобной области нажатия для пальца в Android -->
+        <Spinner
+            android:id="@+id/spinnerCategory"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="14dp" />
+
+        <!-- Подпись над выпадающим списком приоритетов -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Приоритет"
+            android:textColor="@color/cal_text_secondary"
+            android:textSize="13sp"
+            android:layout_marginBottom="4dp" />
+
+        <!-- Выпадающий список приоритета (Низкий / Средний / Высокий) -->
+        <Spinner
+            android:id="@+id/spinnerPriority"
+            android:layout_width="match_parent"
+            android:layout_height="48dp"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Обёртка для поля подробного описания задачи -->
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/textInputLayoutDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="32dp">
+            android:layout_marginBottom="28dp">
 
+            <!--
+                Многострочное поле описания:
+                - inputType="textMultiLine" — разрешает переносить текст на новые строки кнопкой Enter;
+                - lines="3" — сразу задаёт высоту поля примерно в 3 строчки;
+                - gravity="top" — прижимает курсор и текст к верхнему краю поля (по умолчанию он был бы по центру).
+            -->
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/editTextDescription"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:hint="Описание (необязательно)"
+                android:textColor="@color/cal_text_primary"
                 android:inputType="textMultiLine"
                 android:lines="3"
                 android:gravity="top" />
         </com.google.android.material.textfield.TextInputLayout>
 
-        <!-- Кнопка сохранения -->
+        <!--
+            Главная кнопка сохранения (в режиме редактирования её текст меняется в Kotlin на «Обновить задачу»).
+            - layout_height="60dp" — делаем кнопку крупной, чтобы удобно нажимать;
+            - app:cornerRadius="8dp" — скругление углов Material-кнопки.
+        -->
         <Button
             android:id="@+id/buttonSave"
             android:layout_width="match_parent"

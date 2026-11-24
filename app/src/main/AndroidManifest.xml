@@ -1,7 +1,39 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Главный файл-паспорт всего приложения. Android читает его самым первым ещё до запуска кода.
+    Здесь перечислено всё, из чего состоит приложение: какие разрешения ему нужны,
+    какие экраны (Activity) в нём есть, какой экран открывается первым и какие фоновые приёмники
+    (уведомления, автозапуск после перезагрузки, виджет) зарегистрированы в системе.
+-->
+<!--
+    xmlns:android — подключает стандартные атрибуты Android (те, что пишутся с приставкой android:).
+    xmlns:tools — служебные атрибуты для самой Android Studio (для подсказок и предпросмотра).
+-->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Разрешение на показ уведомлений (обязательно начиная с Android 13;
+         одного манифеста мало — дополнительно запрашиваем его у пользователя в окне при запуске MainActivity) -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
+    <!-- Разрешения на постановку точных будильников через AlarmManager (нужны с Android 12/13,
+         чтобы напоминания приходили ровно в выбранную минуту, а не с опозданием) -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+
+    <!-- Разрешение получать сигнал от системы о том, что телефон перезагрузился.
+         Нужно для BootReceiver, чтобы он заново расставил будильники после ребута устройства -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+    <!--
+        Общие настройки всего приложения:
+        - allowBackup="true" — разрешает Android делать резервную копию данных приложения;
+        - dataExtractionRules и fullBackupContent — стандартные правила бэкапа (создаёт Android Studio);
+        - icon и roundIcon — обычная и круглая иконки приложения на рабочем столе (лежат в папке mipmap);
+        - label="@string/app_name" — название приложения под иконкой, берётся из файла strings.xml;
+        - supportsRtl="true" — поддержка языков с письмом справа налево (если у кого-то такая система);
+        - theme="@style/Theme.Calendar" — общая тема оформления всего приложения (поддерживает DayNight).
+    -->
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -12,27 +44,81 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Calendar">
 
+        <!--
+            Главный экран приложения (точка перед именем .MainActivity — это сокращение от ru.university.calendar.MainActivity).
+            - exported="true" — разрешаем самой системе Android запускать этот экран (обязательно для экранов с intent-filter с Android 12).
+            - windowSoftInputMode="adjustResize" — когда вылезает экранная клавиатура (например, в поиске),
+              экран аккуратно сжимается по высоте, а не перекрывается клавиатурой наглухо.
+        -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
             android:windowSoftInputMode="adjustResize">
+            <!-- Фильтр говорит Android: это главный стартовый экран (MAIN),
+                 и нужно показать иконку приложения в общем меню телефона (LAUNCHER) -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
+        <!--
+            Экран создания и редактирования задачи.
+            - exported="false" — закрыт снаружи: открыть его может только наше собственное приложение
+              (или наш виджет через PendingIntent), чужие приложения напрямую сюда залезть не могут.
+            - adjustResize — чтобы клавиатура не закрывала нижние поля и кнопку «Сохранить».
+        -->
         <activity
             android:name=".AddTaskActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
-        <!-- ВОТ ИСПРАВЛЕНИЕ: Мы зарегистрировали правильный экран деталей задачи -->
+        <!--
+            Экран подробного просмотра задачи.
+            Тоже exported="false", потому что открывается только изнутри нашего приложения по клику на карточку.
+        -->
         <activity
             android:name=".DetailActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />
 
+        <!--
+            Приёмник сработавшего будильника от AlarmManager (показывает уведомление о задаче).
+            exported="false" — реагирует только на наши собственные PendingIntent из AlarmScheduler.
+        -->
+        <receiver
+            android:name=".TaskAlarmReceiver"
+            android:exported="false" />
+
+        <!--
+            Приёмник, который просыпается после перезагрузки телефона и восстанавливает будильники из базы Room.
+            exported="true" нужно, чтобы сама система Android могла отправить сюда сигнал BOOT_COMPLETED.
+        -->
+        <receiver
+            android:name=".BootReceiver"
+            android:exported="true">
+            <!-- Подписываемся на системное событие завершения загрузки устройства -->
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+            Регистрация нашего виджета для рабочего стола телефона.
+            exported="true" нужно, чтобы системный рабочий стол (Launcher) мог общаться с виджетом и обновлять его.
+        -->
+        <receiver
+            android:name=".TaskWidgetProvider"
+            android:exported="true">
+            <!-- Подписываемся на стандартное событие обновления виджета (при установке, по таймеру и по кнопке ↻) -->
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <!-- Ссылка на файл res/xml/task_widget_info.xml с параметрами виджета (минимальный размер, вёрстка, интервал обновления) -->
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/task_widget_info" />
+        </receiver>
     </application>
 
 </manifest>

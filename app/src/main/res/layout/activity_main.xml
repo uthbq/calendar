@@ -1,23 +1,296 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Главная разметка приложения (подключается в MainActivity).
+
+    Почему в качестве корня выбран именно ConstraintLayout:
+    Он позволяет гибко привязывать элементы к краям экрана без лишней вложенности.
+    Здесь он нужен, чтобы вся страница (поиск + календарь + список задач) свободно прокручивалась
+    внутри NestedScrollView, а круглая кнопка "+" (FloatingActionButton) всегда оставалась
+    приклеенной поверх экрана в правом нижнем углу.
+-->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="@color/cal_bg">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewTasks"
+    <!--
+        NestedScrollView — улучшенный ScrollView из AndroidX, который умеет нормально дружить
+        со вложенными RecyclerView (у нас внутри сразу два: календарь и список задач).
+
+        Почему layout_width="0dp" и layout_height="0dp"?
+        В ConstraintLayout значение `0dp` (называется match_constraints) означает:
+        «растяни этот элемент ровно между его привязками». Поскольку мы привязали все 4 стороны
+        (Top, Bottom, Start, End) к родителю (parent), NestedScrollView занимает ровно 100% экрана.
+        fillViewport="true" гарантирует, что содержимое внутри растянется на весь экран.
+    -->
+    <androidx.core.widget.NestedScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:padding="8dp"
-        android:clipToPadding="false"
+        android:fillViewport="true"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent">
 
+        <!--
+            Единственный прямой контейнер внутри NestedScrollView, раскладывающий блоки сверху вниз.
+            Зачем здесь большой нижний отступ `paddingBottom="88dp"`?
+            Чтобы при прокрутке списка задач до самого конца последнюю карточку можно было поднять выше
+            и её не перекрывала круглая плавающая кнопка "+" в правом нижнем углу.
+        -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingBottom="88dp">
+
+            <!--
+                Верхняя карточка: панель поиска и кнопки управления (Бэкап, Сортировка, Тема).
+                CardView из AndroidX даёт готовый вид карточки Material Design:
+                - cardBackgroundColor="@color/cal_card_bg" — фон карточки (белый в светлой теме, тёмно-серый в тёмной);
+                - cardCornerRadius="12dp" — радиус скругления углов;
+                - cardElevation="2dp" — высота «парения» карточки (размер мягкой тени под ней);
+                - layout_marginHorizontal="12dp" — отступы слева и справа одновременно.
+            -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="12dp"
+                android:layout_marginTop="12dp"
+                app:cardBackgroundColor="@color/cal_card_bg"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="6dp">
+
+                    <!--
+                        Компонент живого поиска SearchView (слушатель подключён в MainActivity).
+                        - app:iconifiedByDefault="false" — строка поиска сразу раскрыта на всю ширину,
+                          а не спрятана в маленькую иконку лупы, на которую надо отдельно тыкать;
+                        - app:queryHint — текст-подсказка внутри пустой строки поиска.
+                    -->
+                    <androidx.appcompat.widget.SearchView
+                        android:id="@+id/searchViewTasks"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:iconifiedByDefault="false"
+                        app:queryHint="Поиск задач по названию..." />
+
+                    <!--
+                        Горизонтальный ряд с тремя компактными текстовыми кнопками под строкой поиска.
+                        - gravity="end" — прижимает все кнопки к правому краю карточки;
+                        - style="...TextButton" — делает кнопки плоскими (просто цветной текст без тяжёлой заливки).
+                    -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="end"
+                        android:orientation="horizontal">
+
+                        <!-- Кнопка меню экспорта/импорта JSON. minWidth="0dp" убирает лишнюю минимальную ширину,
+                             чтобы все три кнопки гарантированно влезли в один ряд даже на узких экранах -->
+                        <Button
+                            android:id="@+id/btnBackup"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:minWidth="0dp"
+                            android:text="Бэкап"
+                            android:textColor="@color/cal_accent" />
+
+                        <!-- Кнопка открытия диалога сортировки (по дате, алфавиту, статусу, приоритету) -->
+                        <Button
+                            android:id="@+id/btnSort"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Сортировка"
+                            android:textColor="@color/cal_accent" />
+
+                        <!-- Кнопка переключения темы оформления (Системная / Светлая / Тёмная) -->
+                        <Button
+                            android:id="@+id/btnTheme"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Тема"
+                            android:textColor="@color/cal_accent" />
+                    </LinearLayout>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!-- Карточка с календарём текущего месяца -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="12dp"
+                app:cardBackgroundColor="@color/cal_card_bg"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="3dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <!--
+                        Шапка календаря: стрелка «‹» | «Ноябрь 2026» | стрелка «›».
+                        gravity="center_vertical" выравнивает стрелки и название месяца ровно по одной горизонтальной оси.
+                    -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <!-- Кнопка переключения на предыдущий месяц -->
+                        <Button
+                            android:id="@+id/btnPrevMonth"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="48dp"
+                            android:layout_height="40dp"
+                            android:minWidth="0dp"
+                            android:text="‹"
+                            android:textColor="@color/cal_accent"
+                            android:textSize="22sp" />
+
+                        <!-- Название месяца и год: `layout_width="0dp"` + `layout_weight="1"` забирают всё пространство
+                             между левой и правой стрелкой, а `gravity="center"` ставит текст ровно посередине -->
+                        <TextView
+                            android:id="@+id/tvMonthYear"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:gravity="center"
+                            android:textColor="@color/cal_text_primary"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <!-- Кнопка переключения на следующий месяц -->
+                        <Button
+                            android:id="@+id/btnNextMonth"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="48dp"
+                            android:layout_height="40dp"
+                            android:minWidth="0dp"
+                            android:text="›"
+                            android:textColor="@color/cal_accent"
+                            android:textSize="22sp" />
+                    </LinearLayout>
+
+                    <!--
+                        Строка заголовков дней недели (Пн..Вс).
+                        У каждого из 7 TextView стоит `layout_width="0dp"` и `layout_weight="1"` —
+                        благодаря этому ширина делится ровно на 7 абсолютно равных колонок,
+                        которые идеально совпадают с 7 колонками сетки GridLayoutManager(this, 7) ниже.
+                        Выходные (Сб, Вс) слегка выделены акцентным цветом cal_accent.
+                    -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="4dp"
+                        android:orientation="horizontal">
+
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="Пн" android:textColor="@color/cal_text_secondary" android:textSize="12sp" android:textStyle="bold" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="Вт" android:textColor="@color/cal_text_secondary" android:textSize="12sp" android:textStyle="bold" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="Ср" android:textColor="@color/cal_text_secondary" android:textSize="12sp" android:textStyle="bold" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="Чт" android:textColor="@color/cal_text_secondary" android:textSize="12sp" android:textStyle="bold" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="Пт" android:textColor="@color/cal_text_secondary" android:textSize="12sp" android:textStyle="bold" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="Сб" android:textColor="@color/cal_accent" android:textSize="12sp" android:textStyle="bold" />
+                        <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:text="Вс" android:textColor="@color/cal_accent" android:textSize="12sp" android:textStyle="bold" />
+                    </LinearLayout>
+
+                    <!--
+                        Сама сетка чисел месяца (подключается CalendarAdapter + GridLayoutManager(this, 7)).
+                        overScrollMode="never" убирает лишний эффект «растягивания» краёв, т.к. сама сетка не скроллится.
+                    -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerViewCalendar"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:overScrollMode="never" />
+
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+            <!--
+                Строка-заголовок над списком задач: слева текст («Задачи на 2026-11-24» / «Все задачи» / «Поиск»),
+                справа кнопка быстрого переключения «Все задачи» / «По дню».
+            -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingHorizontal="16dp"
+                android:paddingVertical="4dp">
+
+                <!-- Заголовок забирает всё оставшееся место слева (0dp + weight="1") -->
+                <TextView
+                    android:id="@+id/tvTasksHeader"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="@color/cal_text_primary"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- Кнопка переключения режима отображения списка -->
+                <Button
+                    android:id="@+id/btnToggleAllTasks"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Все задачи"
+                    android:textColor="@color/cal_accent" />
+            </LinearLayout>
+
+            <!--
+                Динамический список карточек задач (подключается TasksAdapter + LinearLayoutManager + ItemTouchHelper).
+                clipToPadding="false" позволяет теням карточек красиво рисоваться без обрезки по границе padding.
+            -->
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewTasks"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:clipToPadding="false"
+                android:paddingHorizontal="8dp" />
+
+            <!--
+                Пустое состояние (empty state) — показывается, когда на выбранный день или по поиску задач нет.
+                По умолчанию стоит `visibility="gone"` (полностью скрыто и не занимает места на экране);
+                в MainActivity, когда список пустой, мы переключаем его на View.VISIBLE и меняем текст под текущий режим.
+            -->
+            <TextView
+                android:id="@+id/tvEmptyDay"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="28dp"
+                android:text="На этот день задач нет.\nНажмите +, чтобы добавить задачу."
+                android:textColor="@color/cal_text_secondary"
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <!--
+        Круглая плавающая кнопка действия (FAB) для создания новой задачи.
+        - src="@android:drawable/ic_input_add" — системная иконка плюсика "+";
+        - contentDescription="@string/add_task" — текстовое описание иконки из strings.xml (для доступности);
+        - привязки Bottom_toBottomOf="parent" и End_toEndOf="parent" с отступом margin="24dp"
+          намертво закрепляют кнопку в правом нижнем углу экрана поверх прокручиваемого списка.
+    -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddTask"
         android:layout_width="wrap_content"

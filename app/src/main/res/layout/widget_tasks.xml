@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Вёрстка виджета на главный экран (рабочий стол) телефона (загружается через RemoteViews в TaskWidgetProvider).
+
+    Важное ограничение Android для виджетов:
+    Внутри виджета работают далеко не все элементы (например, нельзя положить ConstraintLayout, CardView или MaterialButton),
+    поэтому вся вёрстка собрана на простых стандартных LinearLayout и TextView,
+    а внешний вид скруглённой карточки задаётся через наш файл фона @drawable/bg_widget.
+
+    id="@+id/widgetRoot" нужен, чтобы в TaskWidgetProvider повесить клик на весь виджет (открытие MainActivity).
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetRoot"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_widget"
+    android:orientation="vertical"
+    android:padding="14dp">
+
+    <!-- Верхняя шапка виджета: слева заголовок + сегодняшняя дата, справа кнопки «↻» (обновить) и «+» (добавить) -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <!-- Левая часть шапки: 0dp + weight="1" забирают всё свободное место слева от кнопок -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Заголовок виджета -->
+            <TextView
+                android:id="@+id/widgetTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Задачи на сегодня"
+                android:textColor="@color/cal_text_primary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <!-- Подзаголовок с текущей датой (подставляется из TaskWidgetProvider в формате yyyy-MM-dd) -->
+            <TextView
+                android:id="@+id/widgetDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/cal_text_secondary"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!--
+            Кнопка ручного обновления виджета «↻».
+            Сделана именно через TextView (а не Button), чтобы она была компактной 32dp x 32dp
+            без лишних громоздких отступов и фонов стандартной кнопки.
+            Клик по id widgetBtnRefresh привязывается через PendingIntent в TaskWidgetProvider.
+        -->
+        <TextView
+            android:id="@+id/widgetBtnRefresh"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:gravity="center"
+            android:text="↻"
+            android:textColor="@color/cal_accent"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- Кнопка «+» для быстрого создания задачи сразу на сегодняшний день (открывает AddTaskActivity) -->
+        <TextView
+            android:id="@+id/widgetBtnAdd"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:layout_marginStart="4dp"
+            android:gravity="center"
+            android:text="+"
+            android:textColor="@color/cal_accent"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!--
+        Тонкая горизонтальная линия-разделитель высотой 1dp между шапкой и списком задач.
+        Почему тут TextView, а не обычный View?
+        В RemoteViews (виджетах) голый тег <View> на некоторых версиях Android не поддерживается,
+        а пустой TextView высотой 1dp с заливкой фона работает стабильно вообще на всех телефонах.
+        Цвет #337986CB — полупрозрачный (20%) сине-фиолетовый, аккуратно смотрится и в светлой, и в тёмной теме.
+    -->
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="8dp"
+        android:background="#337986CB" />
+
+    <!--
+        Основная область со списком сегодняшних задач (текст собирается в TaskWidgetProvider).
+        - layout_height="0dp" + layout_weight="1" — забирает всё свободное пространство между разделителем и нижней строкой;
+        - maxLines="7" — ограничивает высоту текста, чтобы он не вылезал за нижнюю границу виджета;
+        - ellipsize="end" — если текст всё же длиннее, аккуратно ставит многоточие «...» в конце;
+        - lineSpacingExtra="4dp" — добавляет чуть больше воздуха между строчками задач, чтобы было легче читать;
+        - text="Загрузка..." — временный текст, пока корутина в onUpdate не дочитала базу Room.
+    -->
+    <TextView
+        android:id="@+id/widgetTasksText"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:lineSpacingExtra="4dp"
+        android:maxLines="7"
+        android:text="Загрузка..."
+        android:textColor="@color/cal_text_primary"
+        android:textSize="13sp" />
+
+    <!-- Нижняя строка-подвал виджета (показывает статистику вроде «Выполнено: 2 из 4» или подсказку, если задач нет) -->
+    <TextView
+        android:id="@+id/widgetFooter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textColor="@color/cal_text_secondary"
+        android:textSize="11sp" />
+
+</LinearLayout>

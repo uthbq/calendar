@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Файл-паспорт нашего виджета на рабочий стол (на него ссылается AndroidManifest.xml
+    внутри <receiver android:name=".TaskWidgetProvider"> через android:resource="@xml/task_widget_info").
+    По этому файлу рабочий стол телефона понимает, какого размера виджет, можно ли его растягивать
+    и как часто система должна автоматически его обновлять.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:initialLayout="@layout/widget_tasks"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />
+    <!--
+        Расшифровка каждого параметра (внутрь самого тега XML-комментарий вставить нельзя, поэтому пишу сразу под ним):
+        - initialLayout="@layout/widget_tasks" — стартовая XML-разметка виджета, которая показывается сразу
+          при добавлении на рабочий стол (пока TaskWidgetProvider ещё читает задачи из базы Room);
+        - minWidth="250dp" — минимальная ширина виджета (по стандартной формуле Android `70 * N - 30` это примерно 4 клетки в ширину);
+        - minHeight="110dp" — минимальная высота виджета (примерно 2 клетки в высоту, чтобы влезли шапка и несколько задач);
+        - resizeMode="horizontal|vertical" — разрешает пользователю растягивать и сжимать виджет и по ширине, и по высоте;
+        - updatePeriodMillis="1800000" — интервал автоматического фонового обновления в миллисекундах
+          (1 800 000 мс = 30 минут; чаще Android по таймеру виджеты не обновляет ради экономии батареи,
+          но при любых правках внутри приложения мы сами мгновенно обновляем его через TaskWidgetProvider.updateAllWidgets);
+        - widgetCategory="home_screen" — указывает, что этот виджет предназначен именно для главного экрана (рабочего стола).
+    -->

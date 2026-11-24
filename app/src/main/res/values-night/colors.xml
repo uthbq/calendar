@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="cal_bg">#121212</color>
+    <color name="cal_card_bg">#1E1E24</color>
+    <color name="cal_text_primary">#ECEFF4</color>
+    <color name="cal_text_secondary">#A8B0BC</color>
+    <color name="cal_accent">#7986CB</color>
+    <color name="cal_selected_text">#FFFFFF</color>
+</resources>

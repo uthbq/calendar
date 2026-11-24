@@ -1,44 +1,69 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+    Вёрстка экрана подробного просмотра задачи (подключается в DetailActivity).
+    Весь экран построен на вертикальном LinearLayout с фоном из @color/cal_bg (поддержка тёмной темы)
+    и внутренним отступом padding="24dp" со всех четырёх сторон.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@color/cal_bg"
     android:orientation="vertical"
     android:padding="24dp">
 
+    <!-- Крупный жирный заголовок задачи (текст подставляется в DetailActivity из Intent) -->
     <TextView
         android:id="@+id/tvDetailTitle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="24sp"
         android:textStyle="bold"
-        android:textColor="@android:color/black"
+        android:textColor="@color/cal_text_primary"
         android:layout_marginBottom="12dp" />
 
+    <!-- Строка с датой выполнения (приглушённый вторичный цвет cal_text_secondary) -->
     <TextView
         android:id="@+id/tvDetailDate"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:textColor="@android:color/darker_gray" />
+        android:textColor="@color/cal_text_secondary" />
 
-    <!-- Новое поле для времени -->
+    <!-- Строка со временем напоминания -->
     <TextView
         android:id="@+id/tvDetailTime"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:textColor="@android:color/darker_gray"
-        android:layout_marginBottom="24dp" />
+        android:textColor="@color/cal_text_secondary"
+        android:layout_marginBottom="8dp" />
 
+    <!-- Строка с категорией и приоритетом, выделенная акцентным цветом cal_accent и жирным шрифтом -->
+    <TextView
+        android:id="@+id/tvDetailMeta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="@color/cal_accent"
+        android:layout_marginBottom="20dp" />
+
+    <!--
+        Блок подробного описания задачи.
+        Тут использован классический приём LinearLayout: `layout_height="0dp"` + `layout_weight="1"`.
+        Что это делает: говорит контейнеру отдать этому TextView ВСЁ оставшееся свободное место по высоте экрана.
+        Благодаря этому кнопка «Редактировать» ниже автоматически аккуратно прижимается к самому низу экрана,
+        независимо от того, короткое у задачи описание или длинное.
+    -->
     <TextView
         android:id="@+id/tvDetailDescription"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:textSize="18sp"
-        android:textColor="@android:color/black" />
+        android:textColor="@color/cal_text_primary" />
 
-    <!-- Кнопка редактирования -->
+    <!-- Кнопка перехода в AddTaskActivity в режиме редактирования, всегда закреплённая внизу экрана -->
     <Button
         android:id="@+id/buttonEditTask"
         android:layout_width="match_parent"

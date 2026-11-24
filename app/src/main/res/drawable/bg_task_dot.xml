@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Маленькая цветная точка под числом в календаре (viewTaskDot размером 6dp x 6dp в item_calendar_day.xml).
+    Показывается, если на эту дату в базе Room есть хотя бы одна задача.
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <!-- Сплошная бирюзово-зелёная заливка, чтобы точка заметно отличалась от синего кружка выбранного дня -->
+    <solid android:color="#00897B" />
+</shape>

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Макет ОДНОЙ ячейки в календарной сетке месяца (используется внутри CalendarAdapter).
+    В MainActivity стоит GridLayoutManager на 7 колонок, поэтому Android автоматически
+    раскладывает 35 или 42 таких ячейки ровной таблицей по дням недели (Пн..Вс).
+
+    Корневой LinearLayout:
+    - layout_width="match_parent" — ячейка занимает ровно всю ширину своей 1/7 колонки сетки;
+    - layout_height="44dp" — фиксированная высота, чтобы все строки календаря были абсолютно одинаковыми
+      и удобно попадать пальцем по любому числу;
+    - gravity="center" — выравнивает число и точку под ним ровно по центру клетки;
+    - orientation="vertical" — ставит число сверху, а цветную точку строго под ним;
+    - padding="2dp" — небольшой внутренний отступ, чтобы соседние кружки не слипались друг с другом.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="44dp"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="2dp">
+
+    <!--
+        Число дня месяца (от 1 до 31, либо пустая строка для ячеек-отступов в начале месяца).
+        Почему ширина и высота строго одинаковые (32dp x 32dp)?
+        Чтобы фоновые фигуры bg_calendar_selected.xml (залитый кружок) и bg_calendar_today.xml (колечко)
+        получались именно ровным кругом, а не вытянутым овалом.
+        - gravity="center" — ставит саму цифру ровно в центр этого кружочка;
+        - textColor="#000000" — базовый цвет для предпросмотра (в работе CalendarAdapter сам красит текст
+          цветами из colors.xml с учётом светлой/тёмной темы).
+    -->
+    <TextView
+        android:id="@+id/tvCalendarDay"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        android:gravity="center"
+        android:textColor="#000000"
+        android:textSize="14sp" />
+
+    <!--
+        Маленькая цветная точка под числом — индикатор того, что в этот день есть хотя бы одна задача.
+        Используем самый лёгкий элемент View (6dp x 6dp) с фоном @drawable/bg_task_dot.
+        Важный нюанс: по умолчанию стоит `visibility="invisible"`, а НЕ `gone`!
+        Разница такая: `invisible` прячет точку, но оставляет под неё пустые 6dp места.
+        Благодаря этому числа в днях с задачами и без задач стоят на одной ровной горизонтальной линии и не прыгают.
+    -->
+    <View
+        android:id="@+id/viewTaskDot"
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:layout_marginTop="2dp"
+        android:background="@drawable/bg_task_dot"
+        android:visibility="invisible" />
+
+</LinearLayout>
